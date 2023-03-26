@@ -11,7 +11,6 @@ fn main() -> Result<()> {
         let current_dir = env::current_dir()?;
         let files_analyze = visit_dirs(current_dir.as_path())?;
         for (file_name, file_content) in files_analyze.iter() {
-            file_name.to_str()?;
             if let Some(file_name) = file_name.to_str() {
                 print_file_info(file_name, file_content)
             }
