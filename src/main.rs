@@ -26,9 +26,12 @@ fn main() -> Result<()> {
 }
 
 fn print_file_info(file_name: &str, file_content: &FileContent) {
+    let FileContent {
+        whitespaces,
+        length,
+    } = file_content;
     println!(
-        "File \"{file_name}\" contains {} characters where {} are whitespace characters",
-        file_content.length, file_content.whitespaces
+        "File \"{file_name}\" contains {length} characters where {whitespaces} are whitespace characters",
     )
 }
 
@@ -42,17 +45,19 @@ fn visit_dirs(path: &Path) -> Result<HashMap<OsString, FileContent>> {
     if path.is_dir() {
         for entry in fs::read_dir(path)? {
             let entry = entry?;
-            let path = entry.path();
-            if path.is_dir() {
-                let rec = visit_dirs(&path)?;
-                file_info.extend(rec);
-            }
-            if path.is_file() {
-                if let Ok(file_analyze) = analyze_file(path.as_path()) {
-                    if let Some(file_name) = path.file_name() {
-                        file_info.insert(file_name.to_owned(), file_analyze);
+            match entry.path() {
+                dir if dir.is_dir() => {
+                    let rec = visit_dirs(&dir)?;
+                    file_info.extend(rec);
+                }
+                file if file.is_file() => {
+                    if let Ok(file_analyze) = analyze_file(file.as_path()) {
+                        if let Some(file_name) = file.file_name() {
+                            file_info.insert(file_name.to_owned(), file_analyze);
+                        }
                     }
                 }
+                _ => {}
             }
         }
     }
